@@ -1,4 +1,4 @@
-﻿# 📸 Simple Social Media
+﻿# Simple Social Media
 
 A lightweight full-stack social media app where users can upload images and videos, browse a live feed, and delete posts — all backed by a FastAPI REST API and ImageKit CDN storage.
 
