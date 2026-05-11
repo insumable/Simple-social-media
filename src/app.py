@@ -1,4 +1,5 @@
 from select import select
+import shutil
 
 from fastapi import FastAPI, HTTPException ,File, UploadFile, Form, Depends
 from httpx import post
@@ -6,6 +7,14 @@ from src.schema import Postcreate
 from src.db import Post, create_db_and_tables, get_async_session
 from sqlalchemy.ext.asyncio import AsyncSession
 from contextlib import asynccontextmanager
+from src.image import imagekit
+from imagekitio.types import UploadFileRequestOptions
+import shutil
+import os
+import uuid
+import tempfile
+
+
 
 
 @asynccontextmanager
@@ -19,19 +28,45 @@ app = FastAPI(lifespan=lifespan)
 @app.post("/upload")
 async def upload_file(
     file: UploadFile = File(...),
-    caption: str = Form(...),
+    caption: str = Form(""),
     session: AsyncSession = Depends(get_async_session)
 ):
-    post = Post(
-        caption=caption,
-        URL=file.filename,
-        file_type=file.content_type,
-        file_name=file.filename
-    ) 
-    session.add(post)
-    await session.commit()
-    await session.refresh(post)
-    return post
+    
+    temp_file_path = None
+
+    try:
+        with tempfile.NamedTemporaryFile(delete=False , suffix=os.path.splitext(file.filename)[1]) as temp_file:
+            temp_file_path = temp_file.name
+            shutil.copyfileobj(file.file, temp_file)
+
+        upload_res = imagekit.upload_file(
+            file=open(temp_file_path, "rb"),
+            file_name=file.filename,
+            options=UploadFileRequestOptions(
+                use_unique_file_name=True,
+                tags=["fastapi-upload"]
+            )
+        )
+        
+        if upload_res.status_code == 200:
+
+            post = Post(
+                caption=caption,
+                url=upload_res.response.url,
+                file_type="video" if file.content_type.startswith("video/") else "image",
+                file_name=upload_res.response.file_name
+            ) 
+            session.add(post)
+            await session.commit()
+            await session.refresh(post)
+            return post
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    finally:
+        if temp_file_path and os.path.exists(temp_file_path):
+            os.unlink(temp_file_path)
+        file.file.close()
 
 
 @app.get("/feed")
