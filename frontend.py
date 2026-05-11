@@ -7,10 +7,6 @@ st.set_page_config(page_title="Simple Social Media", layout="centered")
 
 st.title("Simple Social Media App")
 
-# ----------------------------
-# Upload Section
-# ----------------------------
-
 st.header("Upload a Post")
 
 caption = st.text_input("Caption")
@@ -48,10 +44,6 @@ if st.button("Upload"):
     else:
         st.warning("Please upload a file")
 
-
-# ----------------------------
-# Feed Section
-# ----------------------------
 
 st.header("Feed")
 
