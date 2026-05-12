@@ -16,7 +16,7 @@ A lightweight full-stack social media app where users can upload images and vide
 
 ## 🛠️ Tech Stack
 
-| Layer         | Technology                          |
+| Layers        | Technology                          |
 |---------------|-------------------------------------|
 | Backend       | FastAPI, SQLAlchemy (Async), Uvicorn |
 | Database      | SQLite via `aiosqlite`              |
